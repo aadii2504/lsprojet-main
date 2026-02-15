@@ -14,13 +14,12 @@ public class StudentPerformanceDto
     public Guid StudentId { get; set; }
     public string StudentName { get; set; } = "";
     public string StudentEmail { get; set; } = "";
-    public string CourseTitle { get; set; } = "";
-    public int CourseId { get; set; }
-    public string? Grade { get; set; }
-    public float? Score { get; set; }
-    public string Status { get; set; } = "";
-    public string? Compliance { get; set; }
-    public string? Attendance { get; set; }
+    public string CourseNames { get; set; } = ""; // Comma separated list of course titles
+    public string? Grade { get; set; } // Aggregated or summary
+    public float? Score { get; set; } // Average?
+    public string Status { get; set; } = ""; // Aggregated status
+    public string? Compliance { get; set; } // Aggregated
+    public string? Attendance { get; set; } // Aggregated
     public int CoursesEnrolled { get; set; }
 }
 

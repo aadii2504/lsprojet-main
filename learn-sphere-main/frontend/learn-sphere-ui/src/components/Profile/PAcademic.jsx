@@ -1,21 +1,10 @@
 import { useState, useEffect } from "react";
 
-export const PAcademic = () => {
-  const [rollNumber, setRollNumber] = useState(
-    () => localStorage.getItem("studentRollNumber") || "",
-  );
-  const [course, setCourse] = useState(
-    () => localStorage.getItem("studentCourse") || "",
-  );
-  const [year, setYear] = useState(
-    () => localStorage.getItem("studentYear") || "",
-  );
-
-  useEffect(() => {
-    localStorage.setItem("studentRollNumber", rollNumber);
-    localStorage.setItem("studentCourse", course);
-    localStorage.setItem("studentYear", year);
-  }, [rollNumber, course, year]);
+export const PAcademic = ({ data, setData }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const fieldClass =
     "w-full rounded-md px-3 py-2 mb-3 bg-[var(--card)] border border-[var(--border)] text-[var(--text)]";
@@ -33,18 +22,20 @@ export const PAcademic = () => {
         </div>
 
         <input
+          name="rollNumber"
           type="text"
           placeholder="Roll Number"
-          value={rollNumber}
-          onChange={(e) => setRollNumber(e.target.value)}
+          value={data.rollNumber}
+          onChange={handleChange}
           title="Roll number can include letters, numbers, and - _ /"
           className={fieldClass}
           required
         />
 
         <select
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
+          name="course"
+          value={data.course}
+          onChange={handleChange}
           className={fieldClass}
           required
         >
@@ -58,10 +49,11 @@ export const PAcademic = () => {
         </select>
 
         <input
+          name="year"
           type="number"
           placeholder="Year (e.g., 1–5)"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
+          value={data.year}
+          onChange={handleChange}
           min={1}
           max={5}
           className={fieldClass}

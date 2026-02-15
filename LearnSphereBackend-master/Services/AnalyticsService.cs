@@ -46,26 +46,33 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<List<StudentPerformanceDto>> GetStudentPerformanceAsync(CancellationToken ct = default)
     {
-        var data = await _db.Enrollments
+        var enrollments = await _db.Enrollments
             .Include(e => e.Student)
             .Include(e => e.Course)
-            .Select(e => new StudentPerformanceDto
-            {
-                StudentId = e.StudentId,
-                StudentName = e.Student != null ? e.Student.FullName : "Unknown",
-                StudentEmail = e.Student != null ? e.Student.Email : "",
-                CourseTitle = e.Course != null ? e.Course.Title : "Unknown",
-                CourseId = e.CourseId,
-                Grade = e.Grade,
-                Score = e.Score,
-                Status = e.Status,
-                Compliance = e.Compliance,
-                Attendance = e.Attendance,
-                CoursesEnrolled = e.Student != null ? e.Student.Enrollments.Count : 0
-            })
             .ToListAsync(ct);
 
-        return data;
+        var groupedData = enrollments
+            .GroupBy(e => e.StudentId)
+            .Select(g => 
+            {
+                var student = g.First().Student;
+                return new StudentPerformanceDto
+                {
+                    StudentId = g.Key,
+                    StudentName = student != null ? student.FullName : "Unknown",
+                    StudentEmail = student != null ? student.Email : "",
+                    CourseNames = string.Join(", ", g.Select(e => e.Course?.Title ?? "Unknown")),
+                    CoursesEnrolled = g.Count(),
+                    Grade = string.Join(", ", g.Select(e => e.Grade ?? "-")), 
+                    Score = g.Average(e => e.Score),
+                    Status = string.Join(", ", g.Select(e => e.Status)),
+                    Compliance = string.Join(", ", g.Select(e => e.Compliance ?? "-")),
+                    Attendance = string.Join(" | ", g.Select(e => e.Attendance ?? "N/A"))
+                };
+            })
+            .ToList();
+
+        return groupedData;
     }
 
     public async Task<List<CoursePerformanceDto>> GetCoursePerformanceAsync(CancellationToken ct = default)

@@ -111,7 +111,7 @@ export default function Analytics() {
         (item) =>
           item.studentName?.toLowerCase().includes(query) ||
           item.studentEmail?.toLowerCase().includes(query) ||
-          item.courseTitle?.toLowerCase().includes(query),
+          item.courseNames?.toLowerCase().includes(query),
       );
     }
 
@@ -151,7 +151,8 @@ export default function Analytics() {
     if (activeTab === "student") {
       const headers = [
         { key: "studentName", label: "Student Name" },
-        { key: "coursesEnrolled", label: "Courses" },
+        { key: "coursesEnrolled", label: "Course Count" },
+        { key: "courseNames", label: "Courses Name" }, // Added this
         { key: "grade", label: "Grade" },
         { key: "score", label: "Score" },
         { key: "status", label: "Status" },
