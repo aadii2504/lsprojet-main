@@ -125,6 +125,16 @@ export default function Analytics() {
     setCurrentPage(1);
   }, [activeTab, searchQuery]);
 
+  const toggleRow = (studentId) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(studentId)) {
+      newExpanded.delete(studentId);
+    } else {
+      newExpanded.add(studentId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   const handleExportCSV = () => {
     if (activeTab === "student") {
       const headers = [
