@@ -61,13 +61,17 @@ public class AnalyticsService : IAnalyticsService
                     StudentId = g.Key,
                     StudentName = student != null ? student.FullName : "Unknown",
                     StudentEmail = student != null ? student.Email : "",
-                    CourseNames = string.Join(", ", g.Select(e => e.Course?.Title ?? "Unknown")),
                     CoursesEnrolled = g.Count(),
-                    Grade = string.Join(", ", g.Select(e => e.Grade ?? "-")), 
-                    Score = g.Average(e => e.Score),
-                    Status = string.Join(", ", g.Select(e => e.Status)),
-                    Compliance = string.Join(", ", g.Select(e => e.Compliance ?? "-")),
-                    Attendance = string.Join(" | ", g.Select(e => e.Attendance ?? "N/A"))
+                    Enrollments = g.Select(e => new StudentCourseDetailDto
+                    {
+                        CourseId = e.CourseId,
+                        CourseTitle = e.Course?.Title ?? "Unknown",
+                        Grade = e.Grade,
+                        Score = e.Score,
+                        Status = e.Status,
+                        Compliance = e.Compliance,
+                        Attendance = e.Attendance
+                    }).ToList()
                 };
             })
             .ToList();

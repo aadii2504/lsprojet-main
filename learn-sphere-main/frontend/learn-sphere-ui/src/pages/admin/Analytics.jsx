@@ -5,43 +5,20 @@ import {
   getCoursePerformance,
   getSummaryStats,
 } from "../../api/analytics";
-import { HiOutlineDownload } from "react-icons/hi";
+import { HiOutlineDownload, HiChevronDown, HiChevronUp } from "react-icons/hi";
 
 const ITEMS_PER_PAGE = 10;
 
-// Summary Stat Box Component
-const StatBox = ({ label, value, subtitle }) => (
-  <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-6">
-    <div className="text-sm text-[var(--text)]/70 mb-1">{label}</div>
-    <div className="text-3xl font-bold text-[var(--text)] mb-1">{value}</div>
-    {subtitle && (
-      <div className="text-xs text-[var(--text)]/60">{subtitle}</div>
-    )}
-  </div>
-);
-
-// Tab Button Component
-const TabButton = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-6 py-3 font-semibold text-sm rounded-t-lg transition-colors ${
-      active
-        ? "bg-[var(--card)] border-t border-l border-r border-[var(--border)] text-[var(--text)]"
-        : "text-[var(--text)]/60 hover:text-[var(--text)]/80 bg-transparent"
-    }`}
-  >
-    {children}
-  </button>
-);
+// ... (StatBox and TabButton remain same)
 
 // Export to CSV function
 const exportToCSV = (data, filename, headers) => {
+  // ... (keep existing implementation)
   const csvHeaders = headers.map((h) => h.label).join(",");
   const csvRows = data.map((row) =>
     headers
       .map((h) => {
         const value = row[h.key] || "";
-        // Escape commas and quotes in CSV
         if (
           typeof value === "string" &&
           (value.includes(",") || value.includes('"'))
@@ -79,6 +56,7 @@ export default function Analytics() {
   const [courseData, setCourseData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
   useEffect(() => {
     const loadData = async () => {
@@ -271,23 +249,15 @@ export default function Analytics() {
               <table className="w-full">
                 <thead className="bg-[var(--card)] border-b border-[var(--border)]">
                   <tr>
+                    <th className="w-10 px-4 py-3"></th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
                       Student Name
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
-                      Courses
+                      Email
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
-                      Grade
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
-                      Compliance
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text)]">
-                      Attendance Dates
+                      Total Courses
                     </th>
                   </tr>
                 </thead>
@@ -295,70 +265,130 @@ export default function Analytics() {
                   {paginatedData.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan="4"
                         className="px-4 py-8 text-center text-[var(--text)]/60"
                       >
                         No student data found
                       </td>
                     </tr>
                   ) : (
-                    paginatedData.map((item, idx) => (
-                      <tr
-                        key={`${item.studentId}-${item.courseId}-${idx}`}
-                        className="border-b border-[var(--border)] hover:bg-white/5 transition-colors"
-                      >
-                        <td className="px-4 py-3 text-sm text-[var(--text)]">
-                          {item.studentName}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[var(--text)]">
-                          {item.coursesEnrolled}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.grade ? (
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${
-                                item.grade === "A"
-                                  ? "bg-green-600/20 text-green-400"
-                                  : item.grade === "B"
-                                    ? "bg-blue-600/20 text-blue-400"
-                                    : "bg-orange-600/20 text-orange-400"
-                              }`}
-                            >
-                              {item.grade}
+                    paginatedData.map((item) => (
+                      <React.Fragment key={item.studentId}>
+                        {/* Main Row */}
+                        <tr
+                          className="border-b border-[var(--border)] hover:bg-white/5 transition-colors cursor-pointer"
+                          onClick={() => toggleRow(item.studentId)}
+                        >
+                          <td className="px-4 py-3 text-[var(--text)]/60">
+                            {expandedRows.has(item.studentId) ? (
+                              <HiChevronUp />
+                            ) : (
+                              <HiChevronDown />
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-[var(--text)]">
+                            {item.studentName}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--text)]/80">
+                            {item.studentEmail}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--text)]">
+                            <span className="inline-flex items-center justify-center px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-xs font-semibold">
+                              {item.coursesEnrolled} Courses
                             </span>
-                          ) : (
-                            <span className="text-[var(--text)]/40">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[var(--text)]/80">
-                          {item.status}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.compliance === "Compliant" ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-green-600/20 text-green-400">
-                              Compliant
-                            </span>
-                          ) : item.compliance === "Non-Compliant" ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-red-600/20 text-red-400">
-                              Non-Compliant
-                            </span>
-                          ) : (
-                            <span className="text-[var(--text)]/40">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[var(--text)]/80">
-                          {item.attendance !== "NA" &&
-                          item.attendance !== "Not Attended" ? (
-                            <span className="text-xs">{item.attendance}</span>
-                          ) : item.attendance === "Not Attended" ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-red-600/20 text-red-400">
-                              Not Attended
-                            </span>
-                          ) : (
-                            <span className="text-[var(--text)]/40">NA</span>
-                          )}
-                        </td>
-                      </tr>
+                          </td>
+                        </tr>
+
+                        {/* Expanded Row */}
+                        {expandedRows.has(item.studentId) && (
+                          <tr className="bg-[var(--card)]/30">
+                            <td colSpan="4" className="p-4">
+                              <div className="rounded border border-[var(--border)] overflow-hidden bg-[var(--card)]">
+                                <table className="w-full text-sm">
+                                  <thead className="bg-[var(--card)] border-b border-[var(--border)]">
+                                    <tr className="text-[var(--text)]/70">
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Course
+                                      </th>
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Grade
+                                      </th>
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Score
+                                      </th>
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Status
+                                      </th>
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Compliance
+                                      </th>
+                                      <th className="px-4 py-2 text-left font-medium">
+                                        Attendance
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {item.enrollments.map((course) => (
+                                      <tr
+                                        key={course.courseId}
+                                        className="border-b border-[var(--border)] last:border-0"
+                                      >
+                                        <td className="px-4 py-2 text-[var(--text)]">
+                                          {course.courseTitle}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                          {course.grade ? (
+                                            <span
+                                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
+                                                course.grade === "A"
+                                                  ? "bg-green-600/20 text-green-400"
+                                                  : course.grade === "B"
+                                                    ? "bg-blue-600/20 text-blue-400"
+                                                    : "bg-orange-600/20 text-orange-400"
+                                              }`}
+                                            >
+                                              {course.grade}
+                                            </span>
+                                          ) : (
+                                            <span className="text-[var(--text)]/40">
+                                              -
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td className="px-4 py-2 text-[var(--text)]">
+                                          {course.score ?? "-"}
+                                        </td>
+                                        <td className="px-4 py-2 text-[var(--text)]/80">
+                                          {course.status}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                          {course.compliance === "Compliant" ? (
+                                            <span className="text-green-400 text-xs">
+                                              ● Compliant
+                                            </span>
+                                          ) : course.compliance ===
+                                            "Non-Compliant" ? (
+                                            <span className="text-red-400 text-xs">
+                                              ● Non-Compliant
+                                            </span>
+                                          ) : (
+                                            <span className="text-[var(--text)]/40">
+                                              -
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td className="px-4 py-2 text-[var(--text)]/70 text-xs">
+                                          {course.attendance || "-"}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))
                   )}
                 </tbody>
